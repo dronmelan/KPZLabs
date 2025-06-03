@@ -1,0 +1,11 @@
+def print_hero_stats(hero):
+    print(f"{'='*50}")
+    print(f"Hero: {hero.get_description()}")
+    print(f"{'='*50}")
+    print(f"Health:      {hero.get_health()}")
+    print(f"Mana:        {hero.get_mana()}")
+    print(f"Attack:      {hero.get_attack()}")
+    print(f"Defense:     {hero.get_defense()}")
+    print(f"Magic Power: {hero.get_magic_power()}")
+    print(f"{'='*50}")
+    print()
