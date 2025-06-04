@@ -5,7 +5,6 @@ from iterator_demo import demonstrate_iterators, demonstrate_with_flyweight
 
 
 def create_sample_table():
-    # Створюємо таблицю
     table = LightElementNode("table", "block", "with_closing_tag", ["data-table"])
 
     thead = LightElementNode("thead", "block", "with_closing_tag")
@@ -41,7 +40,6 @@ def create_sample_table():
 
 
 def create_sample_text():
-    """Створює приклад тексту для обробки"""
     return [
         "Пригоди Аліси в Країні Чудес",
         "",
@@ -58,7 +56,6 @@ def create_sample_text():
 
 
 def demonstrate_task5():
-    """Демонстрація завдання 5: Компонувальник"""
     print("=" * 60)
     print("ЗАВДАННЯ 5: КОМПОНУВАЛЬНИК (LightHTML)")
     print("=" * 60)
@@ -114,16 +111,24 @@ def demonstrate_task6():
 
 
 def demonstrate_task7():
-    """Демонстрація завдання 7: Ітератор"""
     print("\n")
     demonstrate_iterators()
     demonstrate_with_flyweight()
 
 
+from command_demo import demonstrate_command_pattern
+
+def demonstrate_task8():
+    print("\n" + "=" * 60)
+    print("ЗАВДАННЯ 8: КОМАНДА")
+    print("=" * 60)
+    demonstrate_command_pattern()
+
 if __name__ == "__main__":
     demonstrate_task5()
     demonstrate_task6()
     demonstrate_task7()
+    demonstrate_task8()
 
     print("\n" + "=" * 60)
     print("ПРОГРАМА ЗАВЕРШЕНА УСПІШНО")
