@@ -1,6 +1,7 @@
 from light_html import LightElementNode, LightTextNode
 from flyweight import ElementFlyweightFactory
 from html_processor import HTMLProcessor
+from iterator_demo import demonstrate_iterators, demonstrate_with_flyweight
 
 
 def create_sample_table():
@@ -112,9 +113,17 @@ def demonstrate_task6():
     print(html_output[:500] + "..." if len(html_output) > 500 else html_output)
 
 
+def demonstrate_task7():
+    """Демонстрація завдання 7: Ітератор"""
+    print("\n")
+    demonstrate_iterators()
+    demonstrate_with_flyweight()
+
+
 if __name__ == "__main__":
     demonstrate_task5()
     demonstrate_task6()
+    demonstrate_task7()
 
     print("\n" + "=" * 60)
     print("ПРОГРАМА ЗАВЕРШЕНА УСПІШНО")
