@@ -3,6 +3,7 @@ from flyweight import ElementFlyweightFactory
 from html_processor import HTMLProcessor
 from iterator_demo import demonstrate_iterators, demonstrate_with_flyweight
 from task5_6.state_demo import demonstrate_state_pattern
+from task5_6.template_method import demonstrate_template_method
 
 
 def create_sample_table():
@@ -125,12 +126,18 @@ def demonstrate_task8():
     print("=" * 60)
     demonstrate_command_pattern()
 
+
 def demonstrate_task9():
     print("\n" + "=" * 60)
     print("ЗАВДАННЯ 9: СТАН (STATE)")
     print("=" * 60)
     demonstrate_state_pattern()
 
+def demonstrate_task10():
+    print("\n" + "=" * 60)
+    print("ЗАВДАННЯ 10: ШАБЛОННИЙ МЕТОД (TEMPLATE METHOD)")
+    print("=" * 60)
+    demonstrate_template_method()
 
 if __name__ == "__main__":
     demonstrate_task5()
@@ -138,6 +145,7 @@ if __name__ == "__main__":
     demonstrate_task7()
     demonstrate_task8()
     demonstrate_task9()
+    demonstrate_task10()
 
     print("\n" + "=" * 60)
     print("ПРОГРАМА ЗАВЕРШЕНА УСПІШНО")
