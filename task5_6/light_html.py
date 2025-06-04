@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Iterator
 
 
 class LightNode(ABC):
@@ -11,6 +11,26 @@ class LightNode(ABC):
     @abstractmethod
     def get_size(self) -> int:
         pass
+
+    def create_depth_first_iterator(self):
+        """Створює ітератор для обходу в глибину"""
+        from iterator import IteratorFactory
+        return IteratorFactory.create_depth_first_iterator(self)
+
+    def create_breadth_first_iterator(self):
+        """Створює ітератор для обходу в ширину"""
+        from iterator import IteratorFactory
+        return IteratorFactory.create_breadth_first_iterator(self)
+
+    def create_element_type_iterator(self, element_type: type):
+        """Створює ітератор для елементів певного типу"""
+        from iterator import IteratorFactory
+        return IteratorFactory.create_element_type_iterator(self, element_type)
+
+    def create_tag_name_iterator(self, tag_name: str):
+        """Створює ітератор для елементів з певним тегом"""
+        from iterator import IteratorFactory
+        return IteratorFactory.create_tag_name_iterator(self, tag_name)
 
 
 class LightTextNode(LightNode):
@@ -26,7 +46,6 @@ class LightTextNode(LightNode):
 
 
 class LightElementNode(LightNode):
-
     BLOCK = "block"
     INLINE = "inline"
 
@@ -70,3 +89,21 @@ class LightElementNode(LightNode):
         for child in self.children:
             size += child.get_size()
         return size
+
+    def __iter__(self):
+        """Дозволяє використовувати for цикл безпосередньо на елементі (обхід дочірніх елементів)"""
+        return iter(self.children)
+
+    def find_elements_by_tag(self, tag_name: str) -> List['LightNode']:
+        """Знаходить всі елементи з заданим тегом"""
+        result = []
+        for node in self.create_tag_name_iterator(tag_name):
+            result.append(node)
+        return result
+
+    def find_elements_by_type(self, element_type: type) -> List['LightNode']:
+        """Знаходить всі елементи заданого типу"""
+        result = []
+        for node in self.create_element_type_iterator(element_type):
+            result.append(node)
+        return result
