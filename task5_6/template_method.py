@@ -153,7 +153,6 @@ class ReportDocumentTemplate(HTMLDocumentTemplate):
                 continue
 
             if line.startswith('•') or line.startswith('-'):
-                # Списки
                 if current_list is None:
                     current_list = LightElementNode("ul", "block", "with_closing_tag", ["report-list"])
                     section.add_child(current_list)
@@ -170,7 +169,6 @@ class ReportDocumentTemplate(HTMLDocumentTemplate):
                     h2.add_child(LightTextNode(line))
                     section.add_child(h2)
                 else:
-                    # Звичайний текст
                     p = LightElementNode("p", "block", "with_closing_tag", ["report-text"])
                     p.add_child(LightTextNode(line))
                     section.add_child(p)
@@ -218,7 +216,7 @@ class FlyweightDocumentTemplate(HTMLDocumentTemplate):
                 continue
 
             if i == 0:
-                continue  # Пропускаємо перший рядок (він вже заголовок)
+                continue
             elif len(line) < 20:
                 h2 = LightElementNodeFlyweight("h2", "block", "with_closing_tag")
                 h2.add_child(LightTextNode(line))
