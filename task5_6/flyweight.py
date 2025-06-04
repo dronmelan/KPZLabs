@@ -70,19 +70,20 @@ class LightElementNodeFlyweight(LightNode):
         return size
 
     def __iter__(self):
-        """Дозволяє використовувати for цикл безпосередньо на елементі (обхід дочірніх елементів)"""
         return iter(self.children)
 
     def find_elements_by_tag(self, tag_name: str) -> List[LightNode]:
-        """Знаходить всі елементи з заданим тегом"""
         result = []
         for node in self.create_tag_name_iterator(tag_name):
             result.append(node)
         return result
 
     def find_elements_by_type(self, element_type: type) -> List[LightNode]:
-        """Знаходить всі елементи заданого типу"""
         result = []
         for node in self.create_element_type_iterator(element_type):
             result.append(node)
         return result
+
+
+    def accept(self, visitor):
+        return visitor.visit_flyweight_element_node(self)

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 
 class LightNode(ABC):
@@ -10,6 +10,9 @@ class LightNode(ABC):
 
     @abstractmethod
     def get_size(self) -> int:
+        pass
+
+    def accept(self, visitor):
         pass
 
     def create_depth_first_iterator(self):
@@ -39,6 +42,9 @@ class LightTextNode(LightNode):
 
     def get_size(self) -> int:
         return 48 + len(self.text.encode('utf-8'))
+
+    def accept(self, visitor):
+        return visitor.visit_text_node(self)
 
 
 class LightElementNode(LightNode):
@@ -86,6 +92,9 @@ class LightElementNode(LightNode):
             size += child.get_size()
         return size
 
+    def accept(self, visitor):
+        return visitor.visit_element_node(self)
+
     def __iter__(self):
         return iter(self.children)
 
@@ -102,22 +111,51 @@ class LightElementNode(LightNode):
         return result
 
 
-from light_html import LightElementNode, LightTextNode, LightNode
-from command import HTMLEditorInvoker, HTMLCommandFactory, CommandMixin
-from typing import List, Optional
+# Розширені класи з підтримкою команд
+class CommandMixin:
+
+    def __init__(self):
+        self._editor = None
+
+    def set_editor(self, editor):
+        self._editor = editor
+
+    def add_child_with_command(self, child: LightNode):
+        if self._editor:
+            from command import HTMLCommandFactory
+            command = HTMLCommandFactory.create_add_child_command(self, child)
+            self._editor.execute_command(command)
+
+    def remove_child_with_command(self, child: LightNode):
+        if self._editor:
+            from command import HTMLCommandFactory
+            command = HTMLCommandFactory.create_remove_child_command(self, child)
+            self._editor.execute_command(command)
+
+    def add_css_class_with_command(self, css_class: str):
+        if self._editor:
+            from command import HTMLCommandFactory
+            command = HTMLCommandFactory.create_add_css_class_command(self, css_class)
+            self._editor.execute_command(command)
+
+    def remove_css_class_with_command(self, css_class: str):
+        if self._editor:
+            from command import HTMLCommandFactory
+            command = HTMLCommandFactory.create_remove_css_class_command(self, css_class)
+            self._editor.execute_command(command)
 
 
 class EnhancedLightElementNode(LightElementNode, CommandMixin):
 
     def __init__(self, tag_name: str, display_type: str = "block",
                  closing_type: str = "with_closing_tag", css_classes: List[str] = None,
-                 editor: Optional[HTMLEditorInvoker] = None):
+                 editor: Optional = None):
         LightElementNode.__init__(self, tag_name, display_type, closing_type, css_classes)
         CommandMixin.__init__(self)
         if editor:
             self.set_editor(editor)
 
-    def set_editor_recursive(self, editor: HTMLEditorInvoker) -> None:
+    def set_editor_recursive(self, editor) -> None:
         self.set_editor(editor)
         for child in self.children:
             if isinstance(child, EnhancedLightElementNode):
@@ -153,15 +191,16 @@ class EnhancedLightElementNode(LightElementNode, CommandMixin):
 
 class EnhancedLightTextNode(LightTextNode):
 
-    def __init__(self, text: str, editor: Optional[HTMLEditorInvoker] = None):
+    def __init__(self, text: str, editor: Optional = None):
         super().__init__(text)
         self._editor = editor
 
-    def set_editor(self, editor: HTMLEditorInvoker) -> None:
+    def set_editor(self, editor) -> None:
         self._editor = editor
 
     def smart_change_text(self, new_text: str) -> None:
         if self._editor:
+            from command import HTMLCommandFactory
             command = HTMLCommandFactory.create_change_text_command(self, new_text)
             self._editor.execute_command(command)
         else:
@@ -170,8 +209,11 @@ class EnhancedLightTextNode(LightTextNode):
 
 class HTMLDocumentBuilder:
 
-    def __init__(self, editor: Optional[HTMLEditorInvoker] = None):
-        self.editor = editor or HTMLEditorInvoker()
+    def __init__(self, editor: Optional = None):
+        self.editor = editor
+        if not self.editor:
+            from command import HTMLEditorInvoker
+            self.editor = HTMLEditorInvoker()
         self.root: Optional[EnhancedLightElementNode] = None
 
     def create_document(self, root_tag: str = "html") -> 'HTMLDocumentBuilder':
@@ -197,6 +239,7 @@ class HTMLDocumentBuilder:
 
         if headers:
             thead = EnhancedLightElementNode("thead", editor=self.editor)
+            from command import HTMLCommandFactory
             commands.append(HTMLCommandFactory.create_add_child_command(table, thead))
 
             header_row = EnhancedLightElementNode("tr", editor=self.editor)
@@ -225,6 +268,7 @@ class HTMLDocumentBuilder:
                     commands.append(HTMLCommandFactory.create_add_child_command(td, text_node))
 
         if commands:
+            from command import HTMLCommandFactory
             macro = HTMLCommandFactory.create_macro_command(
                 commands, f"Create table with {len(headers)} headers and {len(rows)} rows"
             )
@@ -247,7 +291,7 @@ class HTMLDocumentBuilder:
 
 class CommandLogger:
 
-    def __init__(self, editor: HTMLEditorInvoker):
+    def __init__(self, editor):
         self.editor = editor
         self.original_execute = editor.execute_command
         editor.execute_command = self._logged_execute
