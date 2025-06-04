@@ -5,6 +5,7 @@ from iterator_demo import demonstrate_iterators, demonstrate_with_flyweight
 from task5_6.state_demo import demonstrate_state_pattern
 from task5_6.template_method import demonstrate_template_method
 from task5_6.visitor_demo import demonstrate_visitor_pattern
+from mediator_demo import demonstrate_mediator_pattern
 
 
 def create_sample_table():
@@ -146,6 +147,13 @@ def demonstrate_task11():
     print("=" * 60)
     demonstrate_visitor_pattern()
 
+
+def demonstrate_task12():
+    print("\n" + "=" * 60)
+    print("ЗАВДАННЯ 12: МЕДІАТОР (MEDIATOR)")
+    print("=" * 60)
+    demonstrate_mediator_pattern()
+
 if __name__ == "__main__":
     demonstrate_task5()
     demonstrate_task6()
@@ -154,6 +162,7 @@ if __name__ == "__main__":
     demonstrate_task9()
     demonstrate_task10()
     demonstrate_task11()
+    demonstrate_task12()
 
     print("\n" + "=" * 60)
     print("ПРОГРАМА ЗАВЕРШЕНА УСПІШНО")
