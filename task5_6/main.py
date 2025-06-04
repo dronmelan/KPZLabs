@@ -2,6 +2,7 @@ from light_html import LightElementNode, LightTextNode
 from flyweight import ElementFlyweightFactory
 from html_processor import HTMLProcessor
 from iterator_demo import demonstrate_iterators, demonstrate_with_flyweight
+from task5_6.state_demo import demonstrate_state_pattern
 
 
 def create_sample_table():
@@ -124,11 +125,19 @@ def demonstrate_task8():
     print("=" * 60)
     demonstrate_command_pattern()
 
+def demonstrate_task9():
+    print("\n" + "=" * 60)
+    print("ЗАВДАННЯ 9: СТАН (STATE)")
+    print("=" * 60)
+    demonstrate_state_pattern()
+
+
 if __name__ == "__main__":
     demonstrate_task5()
     demonstrate_task6()
     demonstrate_task7()
     demonstrate_task8()
+    demonstrate_task9()
 
     print("\n" + "=" * 60)
     print("ПРОГРАМА ЗАВЕРШЕНА УСПІШНО")
