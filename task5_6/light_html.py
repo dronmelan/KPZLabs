@@ -301,3 +301,192 @@ class CommandLogger:
         result = self.original_execute(command)
         print(f"[LOG] Completed: {command.get_description()}")
         return result
+
+
+from typing import List, Dict, Any, Callable
+from light_html import LightNode, LightElementNode, LightTextNode
+from event_listener import EventTarget, EventType, Event, EventListener, event_manager
+
+
+class EventAwareLightElementNode(LightElementNode, EventTarget):
+
+    def __init__(self, tag_name: str, display_type: str = "block",
+                 closing_type: str = "with_closing_tag", css_classes: List[str] = None):
+        LightElementNode.__init__(self, tag_name, display_type, closing_type, css_classes)
+        EventTarget.__init__(self)
+        self._event_attributes: Dict[str, str] = {}
+
+    def add_child(self, child: LightNode):
+        super().add_child(child)
+        if isinstance(child, EventTarget):
+            child.set_parent_target(self)
+
+    def click(self, data: Dict[str, Any] = None) -> None:
+        self.trigger_event(EventType.CLICK, data)
+        event_manager.process_global_event(Event(EventType.CLICK, self, data))
+
+    def mouseover(self, data: Dict[str, Any] = None) -> None:
+        self.trigger_event(EventType.MOUSEOVER, data)
+        event_manager.process_global_event(Event(EventType.MOUSEOVER, self, data))
+
+    def mouseout(self, data: Dict[str, Any] = None) -> None:
+        self.trigger_event(EventType.MOUSEOUT, data)
+        event_manager.process_global_event(Event(EventType.MOUSEOUT, self, data))
+
+    def focus(self, data: Dict[str, Any] = None) -> None:
+        self.trigger_event(EventType.FOCUS, data)
+        event_manager.process_global_event(Event(EventType.FOCUS, self, data))
+
+    def blur(self, data: Dict[str, Any] = None) -> None:
+        self.trigger_event(EventType.BLUR, data)
+        event_manager.process_global_event(Event(EventType.BLUR, self, data))
+
+    def change(self, data: Dict[str, Any] = None) -> None:
+        self.trigger_event(EventType.CHANGE, data)
+        event_manager.process_global_event(Event(EventType.CHANGE, self, data))
+
+    def keydown(self, key: str, data: Dict[str, Any] = None) -> None:
+        event_data = data or {}
+        event_data['key'] = key
+        self.trigger_event(EventType.KEYDOWN, event_data)
+        event_manager.process_global_event(Event(EventType.KEYDOWN, self, event_data))
+
+    def keyup(self, key: str, data: Dict[str, Any] = None) -> None:
+        event_data = data or {}
+        event_data['key'] = key
+        self.trigger_event(EventType.KEYUP, event_data)
+        event_manager.process_global_event(Event(EventType.KEYUP, self, event_data))
+
+    def submit(self, data: Dict[str, Any] = None) -> None:
+        self.trigger_event(EventType.SUBMIT, data)
+        event_manager.process_global_event(Event(EventType.SUBMIT, self, data))
+
+    def set_event_attribute(self, event_type: EventType, handler_code: str) -> None:
+        self._event_attributes[f"on{event_type.value}"] = handler_code
+
+    def get_outer_html(self) -> str:
+        class_attr = f' class="{" ".join(self.css_classes)}"' if self.css_classes else ""
+
+        event_attrs = ""
+        for attr_name, attr_value in self._event_attributes.items():
+            event_attrs += f' {attr_name}="{attr_value}"'
+
+        if self.closing_type == self.SELF_CLOSING:
+            return f'<{self.tag_name}{class_attr}{event_attrs} />'
+        else:
+            inner_html = self.get_inner_html()
+            return f'<{self.tag_name}{class_attr}{event_attrs}>{inner_html}</{self.tag_name}>'
+
+    def get_size(self) -> int:
+        base_size = super().get_size()
+
+        events_size = 0
+        for event_listeners in self._event_listeners.values():
+            events_size += len(event_listeners) * 32  # Приблизний розмір обробника
+
+        for attr_name, attr_value in self._event_attributes.items():
+            events_size += len(attr_name.encode('utf-8')) + len(attr_value.encode('utf-8')) + 16
+
+        return base_size + events_size
+
+    def get_event_info(self) -> Dict[str, Any]:
+        return {
+            'listeners_count': self.get_all_listeners_count(),
+            'event_types': list(self._event_listeners.keys()),
+            'event_attributes': self._event_attributes.copy()
+        }
+
+
+class EventAwareLightTextNode(LightTextNode, EventTarget):
+
+    def __init__(self, text: str):
+        LightTextNode.__init__(self, text)
+        EventTarget.__init__(self)
+
+    def get_size(self) -> int:
+        base_size = super().get_size()
+
+        events_size = 0
+        for event_listeners in self._event_listeners.values():
+            events_size += len(event_listeners) * 32
+
+        return base_size + events_size
+
+
+class InteractiveButton(EventAwareLightElementNode):
+
+    def __init__(self, text: str, css_classes: List[str] = None):
+        super().__init__("button", "inline", "with_closing_tag", css_classes or ["btn"])
+        self.add_child(EventAwareLightTextNode(text))
+        self._click_count = 0
+        self._enabled = True
+
+        self.add_event_listener_function(EventType.CLICK, self._default_click_handler)
+
+    def _default_click_handler(self, event: Event) -> None:
+        if self._enabled:
+            self._click_count += 1
+            print(f"Button '{self.get_text()}' clicked {self._click_count} times")
+
+    def get_text(self) -> str:
+        if self.children and isinstance(self.children[0], EventAwareLightTextNode):
+            return self.children[0].text
+        return ""
+
+    def set_enabled(self, enabled: bool) -> None:
+        self._enabled = enabled
+        if enabled:
+            self.css_classes = [cls for cls in self.css_classes if cls != "disabled"]
+        else:
+            if "disabled" not in self.css_classes:
+                self.css_classes.append("disabled")
+
+    def get_click_count(self) -> int:
+        return self._click_count
+
+    def reset_click_count(self) -> None:
+        self._click_count = 0
+
+
+class InteractiveForm(EventAwareLightElementNode):
+
+    def __init__(self, css_classes: List[str] = None):
+        super().__init__("form", "block", "with_closing_tag", css_classes or ["form"])
+        self._fields: Dict[str, EventAwareLightElementNode] = {}
+        self._validation_rules: Dict[str, Callable[[str], bool]] = {}
+
+        self.add_event_listener_function(EventType.SUBMIT, self._handle_submit)
+
+    def add_input_field(self, name: str, input_type: str = "text",
+                        placeholder: str = "", validation: Callable[[str], bool] = None) -> EventAwareLightElementNode:
+        input_field = EventAwareLightElementNode("input", "inline", "self_closing", ["form-input"])
+        input_field.set_event_attribute(EventType.CHANGE, f"validateField('{name}')")
+
+        self._fields[name] = input_field
+        if validation:
+            self._validation_rules[name] = validation
+
+        self.add_child(input_field)
+        return input_field
+
+    def add_submit_button(self, text: str = "Submit") -> InteractiveButton:
+        button = InteractiveButton(text, ["btn", "btn-submit"])
+        button.add_event_listener_function(EventType.CLICK, lambda e: self.submit())
+        self.add_child(button)
+        return button
+
+    def _handle_submit(self, event: Event) -> None:
+        print(f"Form submitted with {len(self._fields)} fields")
+
+        valid = True
+        for field_name, validation_rule in self._validation_rules.items():
+            print(f"Validating field: {field_name}")
+
+        if valid:
+            print("Form validation passed!")
+        else:
+            print("Form validation failed!")
+            event.stop_propagation()
+
+    def get_fields_count(self) -> int:
+        return len(self._fields)
